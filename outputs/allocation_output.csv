@@ -1,0 +1,31 @@
+team,location,headcount,category,ratePerHead,holdbackPct,allocated,heldBack,available
+Platform Engineering,US,42,T&E,1300,15,54600,8190,46410
+Platform Engineering,US,42,Morale,24,10,1008,100.8,907.2
+Platform Engineering,US,42,Training,35,10,1470,147,1323
+Data Services,US,28,T&E,1300,15,36400,5460,30940
+Data Services,US,28,Morale,24,10,672,67.2,604.8
+Data Services,US,28,Training,35,10,980,98,882
+Cloud Operations,EU,31,T&E,1075,10,33325,3332.5,29992.5
+Cloud Operations,EU,31,Morale,20,10,620,62,558
+Cloud Operations,EU,31,Training,30,10,930,93,837
+Identity & Access,EU,19,T&E,1075,10,20425,2042.5,18382.5
+Identity & Access,EU,19,Morale,20,10,380,38,342
+Identity & Access,EU,19,Training,30,10,570,57,513
+Quality Engineering,India,55,T&E,525,10,28875,2887.5,25987.5
+Quality Engineering,India,55,Morale,10,10,550,55,495
+Quality Engineering,India,55,Training,18,10,990,99,891
+Support Tooling,India,38,T&E,525,10,19950,1995,17955
+Support Tooling,India,38,Morale,10,10,380,38,342
+Support Tooling,India,38,Training,18,10,684,68.4,615.6
+Mobile Apps,US,24,T&E,1300,15,31200,4680,26520
+Mobile Apps,US,24,Morale,24,10,576,57.6,518.4
+Mobile Apps,US,24,Training,35,10,840,84,756
+Analytics,ROW,17,T&E,800,10,13600,1360,12240
+Analytics,ROW,17,Morale,15,10,255,25.5,229.5
+Analytics,ROW,17,Training,22,10,374,37.4,336.6
+Developer Experience,EU,14,T&E,1075,10,15050,1505,13545
+Developer Experience,EU,14,Morale,20,10,280,28,252
+Developer Experience,EU,14,Training,60,10,840,84,756
+Business Systems,ROW,21,T&E,800,10,16800,1680,15120
+Business Systems,ROW,21,Morale,15,10,315,31.5,283.5
+Business Systems,ROW,21,Training,22,10,462,46.2,415.8

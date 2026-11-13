@@ -1,0 +1,119 @@
+// Trimmed Prisma schema (7 of the app's models). Provider is SQL Server (Azure SQL);
+// swap to "sqlite" for a zero-setup local run.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// Money columns are Float, not Decimal: Prisma returns Decimal as an object, and
+// `a + b` on two of them concatenates instead of adding, silently corrupting totals.
+
+model Target {
+  id             Int      @id @default(autoincrement())
+  fiscalYear     Int
+  period         String   // Q1..Q4
+  category       String   // T&E | Morale | Training
+  inputTarget    Float
+  holdbackAmount Float    @default(0)
+  outputActual   Float
+  updatedBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([fiscalYear, period, category])
+  @@map("WSP_Targets")
+}
+
+model Headcount {
+  id            Int    @id @default(autoincrement())
+  fiscalYear    Int
+  fundingSource String // Core | Other
+  opex          Float
+  cogs          Float
+  fyTarget      Float
+
+  @@unique([fiscalYear, fundingSource])
+  @@map("WSP_Headcount")
+}
+
+model HeadcountPipeline {
+  id            Int    @id @default(autoincrement())
+  fiscalYear    Int
+  fundingSource String
+  current       Int
+  committed     Int
+  recruiting    Int
+  attrition     Int
+
+  @@unique([fiscalYear, fundingSource])
+  @@map("WSP_HeadcountPipeline")
+}
+
+model CostPerHead {
+  id         Int    @id @default(autoincrement())
+  fiscalYear Int
+  location   String
+  morale     Float
+  training   Float
+  computer   Float
+  te         Float
+
+  @@unique([fiscalYear, location])
+  @@map("WSP_CostPerHead")
+}
+
+model Team {
+  id         Int    @id @default(autoincrement())
+  fiscalYear Int
+  name       String
+  location   String
+  headcount  Int
+
+  @@unique([fiscalYear, name])
+  @@map("WSP_Teams")
+}
+
+// scopeType/scopeId let one table serve every allocation grain:
+// "team" rows override "location" rows, which override the category "Default".
+model Allocation {
+  id          Int    @id @default(autoincrement())
+  fiscalYear  Int
+  period      String
+  category    String
+  scopeType   String // location | team
+  scopeId     String // a location, a team name, or "Default"
+  ratePerHead Float
+
+  @@unique([fiscalYear, period, category, scopeType, scopeId])
+  @@map("WSP_Allocations")
+}
+
+model HoldbackRule {
+  id          Int    @id @default(autoincrement())
+  fiscalYear  Int
+  period      String
+  category    String
+  location    String // a location or "Default"
+  holdbackPct Float
+
+  @@unique([fiscalYear, period, category, location])
+  @@map("WSP_HoldbackRules")
+}
+
+// Every edit is recorded: who, what, before, after.
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  dataset   String
+  action    String   // create | update | delete
+  rowKey    String
+  before    String?
+  after     String?
+  user      String?
+  createdAt DateTime @default(now())
+
+  @@map("WSP_AuditLog")
+}

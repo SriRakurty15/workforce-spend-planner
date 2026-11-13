@@ -1,0 +1,65 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-azure
+  cancel-in-progress: false
+
+env:
+  AZURE_WEBAPP_NAME: your-app-name      # placeholder
+  AZURE_PACKAGE_PATH: backend
+  NODE_VERSION: "22.x"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+
+      - name: Install dependencies
+        run: npm run install:all
+
+      - name: Typecheck frontend          # a broken commit never reaches production
+        run: npx tsc --noEmit
+        working-directory: frontend
+
+      - name: Build frontend into backend/public
+        run: npm run build:azure
+
+      - name: Stamp the deployed commit    # /api/health reports it back
+        run: echo "${{ github.sha }}" > backend/DEPLOY_COMMIT
+
+      - name: Remove dev-only files
+        run: rm -rf backend/node_modules frontend
+
+      - name: Deploy to Azure App Service
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.AZURE_PACKAGE_PATH }}
+
+      - name: Smoke test (wait for THIS commit to be live)
+        run: |
+          URL="${{ steps.deploy.outputs.webapp-url }}"
+          for i in $(seq 1 40); do
+            got=$(curl -s --max-time 15 "$URL/api/health" | grep -o '"commit":"[^"]*"' | cut -d'"' -f4)
+            [ "$got" = "${{ github.sha }}" ] && { echo "Live after $i attempt(s)"; exit 0; }
+            sleep 15
+          done
+          echo "::error::New build never went live"; exit 1
+
+      - name: Seed empty datasets
+        run: |
+          curl -fsS --max-time 240 -X POST "${{ steps.deploy.outputs.webapp-url }}/api/maintenance/migrate-and-seed" \
+            -H "x-maintenance-token: ${{ secrets.MAINTENANCE_TOKEN }}"
